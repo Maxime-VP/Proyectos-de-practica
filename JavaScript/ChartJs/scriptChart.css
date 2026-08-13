@@ -1,0 +1,21 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+canvas {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+}
+
+.chart-container {
+    max-width: 800px;
+    min-width: 300px;
+    margin: auto;
+}
+
+@media (max-width: 600px) {
+    .chart-container {
+        width: 100%;
+        min-width: 200px;
+    }
+}
