@@ -1,0 +1,1423 @@
+This note is a ChatGPT generated note about basic concepts of SPARK / PYSPARK. 
+About 50 concepts that you should know in order to understand how spark works.
+=====================
+
+1. WHAT IS APACHE SPARK?
+------------------------
+
+Apache Spark is a distributed data processing engine designed to process
+large amounts of data efficiently.
+
+Instead of processing everything on a single machine, Spark can divide
+data into smaller pieces called partitions and process those pieces
+in parallel.
+
+PySpark is the Python API for Apache Spark.
+
+Basic idea:
+
+    Python Code
+        |
+        v
+    Spark Driver
+        |
+        v
+    Spark Execution Plan
+        |
+        +----------+----------+
+        |          |          |
+        v          v          v
+    Executor   Executor   Executor
+        |          |          |
+        v          v          v
+    Partition  Partition  Partition
+
+
+2. WHY IS SPARK USEFUL?
+-----------------------
+
+Spark is useful when datasets or computations become too large or
+expensive to process efficiently on a single machine.
+
+Main advantages:
+
+- Distributed processing
+- Parallel execution
+- Fault tolerance
+- In-memory computation
+- Lazy evaluation
+- Query optimization
+- DataFrame and SQL APIs
+- Integration with cloud storage and databases
+- Support for batch processing and streaming
+- Machine Learning support through MLlib
+
+Typical use cases:
+
+- ETL / ELT pipelines
+- Big Data processing
+- Data engineering
+- Log analysis
+- Data cleaning
+- Large-scale aggregations
+- Feature engineering
+- Machine Learning
+- Processing CSV, JSON, Parquet, databases, etc.
+
+
+3. PYSPARK
+----------
+
+PySpark is Spark's Python API.
+
+Instead of writing Spark applications in Scala or Java, you can use
+Python.
+
+Example:
+
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.builder \
+        .appName("MySparkApp") \
+        .getOrCreate()
+
+    df = spark.read.csv(
+        "data.csv",
+        header=True,
+        inferSchema=True
+    )
+
+    df.show()
+
+    spark.stop()
+
+
+4. SPARKSESSION
+---------------
+
+SparkSession is the main entry point for modern Spark applications.
+
+You normally create one at the beginning of your application.
+
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.builder \
+        .appName("MyApp") \
+        .getOrCreate()
+
+You use SparkSession to:
+
+- Read data
+- Create DataFrames
+- Execute SQL
+- Access Spark functionality
+
+Example:
+
+    df = spark.read.parquet("data.parquet")
+
+
+5. DRIVER
+---------
+
+The Driver is the main process of a Spark application.
+
+The Driver:
+
+- Runs the main application
+- Creates the SparkSession
+- Builds the execution plan
+- Converts transformations into a logical plan
+- Coordinates the execution
+- Creates jobs
+- Sends tasks to executors
+- Collects results when necessary
+
+Think:
+
+    DRIVER = THE COORDINATOR
+
+The Driver does not normally perform all the data processing itself.
+
+Instead, it tells the executors what work needs to be done.
+
+
+6. EXECUTORS
+------------
+
+Executors are processes that run on worker machines.
+
+Executors:
+
+- Execute tasks
+- Process partitions
+- Perform computations
+- Store cached data
+- Return results to the Driver
+
+Think:
+
+    DRIVER = BOSS / COORDINATOR
+
+    EXECUTORS = WORKERS
+
+
+7. WORKER NODES
+---------------
+
+A worker node is a machine in the cluster where Spark executors run.
+
+For example:
+
+    Cluster
+    |
+    +-- Worker 1
+    |      |
+    |      +-- Executor
+    |
+    +-- Worker 2
+    |      |
+    |      +-- Executor
+    |
+    +-- Worker 3
+           |
+           +-- Executor
+
+
+8. CLUSTER MANAGER
+------------------
+
+The cluster manager is responsible for allocating resources to Spark.
+
+Examples:
+
+- Spark Standalone
+- YARN
+- Kubernetes
+
+In cloud environments, Spark can also run using managed services such
+as Databricks, Amazon EMR, Google Cloud services, etc.
+
+
+9. PARTITIONS
+-------------
+
+A partition is a chunk of distributed data.
+
+Suppose we have 1,000,000 records.
+
+Spark might divide them into:
+
+    Partition 1 -> 250,000 records
+    Partition 2 -> 250,000 records
+    Partition 3 -> 250,000 records
+    Partition 4 -> 250,000 records
+
+These partitions can be processed in parallel.
+
+This is one of the fundamental ideas behind Spark.
+
+More partitions do NOT automatically mean better performance.
+
+Too few partitions can lead to insufficient parallelism.
+
+Too many partitions can create unnecessary overhead.
+
+
+10. TASKS
+---------
+
+A Task is a unit of work performed by an executor.
+
+Generally:
+
+    One task processes one partition for a particular stage.
+
+Example:
+
+    4 partitions
+        |
+        v
+    4 tasks
+        |
+        v
+    Executors execute those tasks
+
+
+11. JOBS
+--------
+
+A Spark Job is created when an action triggers execution.
+
+Example:
+
+    df.filter(df.age > 20).show()
+
+The filter is a transformation.
+
+The show() is an action.
+
+show() triggers Spark to execute the computation.
+
+Therefore:
+
+    Transformation
+          |
+          v
+        Action
+          |
+          v
+         JOB
+
+
+12. STAGES
+----------
+
+A Job is divided into Stages.
+
+Stages are created around operations that require data to be
+redistributed, particularly shuffle operations.
+
+Example:
+
+    df.filter(...)
+      .groupBy(...)
+      .count()
+      .show()
+
+Spark might create:
+
+    Stage 1
+       |
+       | shuffle
+       v
+    Stage 2
+
+
+13. SHUFFLE
+-----------
+
+A shuffle occurs when Spark needs to redistribute data between
+partitions.
+
+This is usually expensive.
+
+Examples of operations that can cause shuffles:
+
+- groupBy
+- join
+- distinct
+- orderBy
+- repartition
+
+Example:
+
+    df.groupBy("city").count()
+
+Spark needs all records belonging to the same city to be brought
+together.
+
+This can require moving data between executors.
+
+Conceptually:
+
+    Executor 1 ----\
+    Executor 2 -----+----> Shuffle ----> New partitions
+    Executor 3 ----/
+    Executor 4 ---/
+
+
+14. TRANSFORMATIONS
+-------------------
+
+Transformations create a new DataFrame or RDD.
+
+They are LAZY.
+
+This means Spark does not immediately execute them.
+
+Examples:
+
+- select()
+- filter()
+- where()
+- withColumn()
+- groupBy()
+- join()
+- orderBy()
+- distinct()
+- dropDuplicates()
+- repartition()
+
+Example:
+
+    filtered_df = df.filter(df.age > 25)
+
+Nothing necessarily happens immediately.
+
+Spark builds an execution plan.
+
+
+15. ACTIONS
+----------
+
+Actions trigger Spark execution.
+
+Common actions:
+
+- show()
+- count()
+- collect()
+- first()
+- take()
+- head()
+- write()
+
+Example:
+
+    filtered_df = df.filter(df.age > 25)
+
+    filtered_df.show()
+
+filter() -> Transformation
+show()   -> Action
+
+The action causes Spark to execute the necessary work.
+
+
+16. LAZY EVALUATION
+-------------------
+
+Spark uses lazy evaluation.
+
+Instead of executing every transformation immediately, Spark builds
+an execution plan.
+
+Example:
+
+    df2 = df.filter(df.age > 20)
+
+    df3 = df2.select("name", "age")
+
+    df4 = df3.orderBy("age")
+
+    df4.show()
+
+Spark can optimize the entire chain before executing it.
+
+This allows Spark's optimizer to determine an efficient execution plan.
+
+
+17. DATAFRAME
+-------------
+
+A DataFrame is a distributed collection of structured data.
+
+It is conceptually similar to a table.
+
+Example:
+
+    +------+-----+
+    | name | age |
+    +------+-----+
+    | Ana  | 25  |
+    | Max  | 22  |
+    | Luis | 30  |
+    +------+-----+
+
+DataFrames are generally preferred over RDDs for modern Spark
+applications.
+
+They allow Spark to optimize queries using its SQL engine.
+
+
+18. RDD
+-------
+
+RDD means:
+
+    Resilient Distributed Dataset
+
+It is Spark's lower-level distributed data structure.
+
+RDDs provide more low-level control but generally have fewer
+optimizations than DataFrames.
+
+Modern Spark applications usually prefer:
+
+    DataFrame > RDD
+
+Use RDDs when you specifically need lower-level control or when the
+problem requires functionality not conveniently available through
+DataFrames.
+
+
+19. DATAFRAME VS RDD
+--------------------
+
+RDD:
+
+- Lower-level
+- Distributed collection of objects
+- More control
+- Less optimized
+- More verbose
+
+DataFrame:
+
+- Higher-level
+- Structured data
+- SQL-like operations
+- Optimized by Spark
+- Easier to use
+
+For most data engineering tasks:
+
+    Prefer DataFrames.
+
+
+20. CREATING A DATAFRAME
+-----------------------
+
+Example:
+
+    data = [
+        ("Alice", 25),
+        ("Bob", 30),
+        ("Carlos", 28)
+    ]
+
+    columns = ["name", "age"]
+
+    df = spark.createDataFrame(
+        data,
+        columns
+    )
+
+Display:
+
+    df.show()
+
+
+21. READING DATA
+----------------
+
+CSV:
+
+    df = spark.read.csv(
+        "data.csv",
+        header=True,
+        inferSchema=True
+    )
+
+JSON:
+
+    df = spark.read.json("data.json")
+
+Parquet:
+
+    df = spark.read.parquet("data.parquet")
+
+Database:
+
+    df = spark.read.jdbc(
+        url,
+        table,
+        properties=properties
+    )
+
+
+22. WRITING DATA
+----------------
+
+CSV:
+
+    df.write \
+        .mode("overwrite") \
+        .option("header", True) \
+        .csv("output/")
+
+Parquet:
+
+    df.write \
+        .mode("overwrite") \
+        .parquet("output/")
+
+Common write modes:
+
+    overwrite
+    append
+    ignore
+    error
+
+
+23. INSPECTING DATA
+-------------------
+
+Display:
+
+    df.show()
+
+Display more rows:
+
+    df.show(20)
+
+Do not truncate strings:
+
+    df.show(truncate=False)
+
+Column names:
+
+    df.columns
+
+Schema:
+
+    df.printSchema()
+
+Data types:
+
+    df.dtypes
+
+Number of rows:
+
+    df.count()
+
+
+24. SELECT
+----------
+
+Select one column:
+
+    df.select("name").show()
+
+Multiple columns:
+
+    df.select(
+        "name",
+        "age"
+    ).show()
+
+Using expressions:
+
+    from pyspark.sql import functions as F
+
+    df.select(
+        F.col("name"),
+        F.col("age")
+    ).show()
+
+
+25. FILTER / WHERE
+------------------
+
+Filter rows:
+
+    df.filter(
+        F.col("age") > 25
+    ).show()
+
+Equivalent:
+
+    df.where(
+        F.col("age") > 25
+    ).show()
+
+Multiple conditions:
+
+    df.filter(
+        (F.col("age") > 20) &
+        (F.col("age") < 30)
+    ).show()
+
+OR:
+
+    df.filter(
+        (F.col("age") < 20) |
+        (F.col("age") > 30)
+    ).show()
+
+NOT:
+
+    df.filter(
+        ~(F.col("age") > 25)
+    ).show()
+
+IMPORTANT:
+
+Use:
+
+    &
+    |
+    ~
+
+Instead of Python:
+
+    and
+    or
+    not
+
+
+26. WITHCOLUMN
+--------------
+
+Create a new column:
+
+    df = df.withColumn(
+        "age_plus_10",
+        F.col("age") + 10
+    )
+
+Rename a column:
+
+    df = df.withColumnRenamed(
+        "name",
+        "full_name"
+    )
+
+Remove a column:
+
+    df = df.drop("age")
+
+
+27. COMMON SPARK FUNCTIONS
+--------------------------
+
+Import:
+
+    from pyspark.sql import functions as F
+
+Common functions:
+
+    F.col()
+    F.lit()
+    F.sum()
+    F.avg()
+    F.min()
+    F.max()
+    F.count()
+    F.countDistinct()
+    F.round()
+    F.upper()
+    F.lower()
+    F.trim()
+    F.when()
+    F.coalesce()
+
+
+28. CONDITIONAL COLUMNS
+-----------------------
+
+Example:
+
+    df = df.withColumn(
+        "category",
+        F.when(
+            F.col("age") >= 30,
+            "Senior"
+        )
+        .when(
+            F.col("age") >= 25,
+            "Mid"
+        )
+        .otherwise("Junior")
+    )
+
+
+29. NULL VALUES
+---------------
+
+Find null values:
+
+    df.filter(
+        F.col("age").isNull()
+    ).show()
+
+Find non-null values:
+
+    df.filter(
+        F.col("age").isNotNull()
+    ).show()
+
+Drop rows containing nulls:
+
+    df.dropna()
+
+Fill nulls:
+
+    df.fillna(0)
+
+Fill specific columns:
+
+    df.fillna({
+        "age": 0
+    })
+
+
+30. DISTINCT / DUPLICATES
+-------------------------
+
+Remove completely duplicated rows:
+
+    df.distinct()
+
+Remove duplicates based on a column:
+
+    df.dropDuplicates(
+        ["id"]
+    )
+
+
+31. GROUPBY
+-----------
+
+Count rows by category:
+
+    df.groupBy(
+        "category"
+    ).count().show()
+
+Multiple aggregations:
+
+    df.groupBy("category").agg(
+        F.sum("sales").alias("total_sales"),
+        F.avg("sales").alias("average_sales"),
+        F.max("sales").alias("max_sales"),
+        F.min("sales").alias("min_sales")
+    ).show()
+
+
+32. ORDERBY
+-----------
+
+Ascending:
+
+    df.orderBy("age").show()
+
+Descending:
+
+    df.orderBy(
+        F.col("age").desc()
+    ).show()
+
+Multiple columns:
+
+    df.orderBy(
+        F.col("age").desc(),
+        F.col("name").asc()
+    ).show()
+
+
+33. JOINS
+---------
+
+Inner join:
+
+    result = df1.join(
+        df2,
+        df1.id == df2.id,
+        "inner"
+    )
+
+Left join:
+
+    result = df1.join(
+        df2,
+        df1.id == df2.id,
+        "left"
+    )
+
+Other join types:
+
+    inner
+    left
+    right
+    full
+    left_semi
+    left_anti
+    cross
+
+
+34. WINDOW FUNCTIONS
+--------------------
+
+Window functions perform calculations across related rows without
+collapsing the rows like groupBy does.
+
+Example:
+
+    from pyspark.sql.window import Window
+
+    window = Window \
+        .partitionBy("department") \
+        .orderBy(
+            F.col("salary").desc()
+        )
+
+    df = df.withColumn(
+        "rank",
+        F.row_number().over(window)
+    )
+
+Common window functions:
+
+    F.row_number()
+    F.rank()
+    F.dense_rank()
+    F.lag()
+    F.lead()
+    F.sum().over()
+    F.avg().over()
+
+
+35. REPARTITION
+---------------
+
+Check number of partitions:
+
+    df.rdd.getNumPartitions()
+
+Change the number:
+
+    df = df.repartition(10)
+
+Partition using a column:
+
+    df = df.repartition(
+        "category"
+    )
+
+Repartition usually causes a shuffle.
+
+Therefore it can be expensive.
+
+
+36. COALESCE
+------------
+
+Coalesce can reduce the number of partitions.
+
+Example:
+
+    df = df.coalesce(2)
+
+Unlike repartition, coalesce is generally intended to reduce the number
+of partitions without a full shuffle.
+
+Do not confuse:
+
+    SQL COALESCE()
+
+with:
+
+    DataFrame.coalesce()
+
+They are different concepts.
+
+
+37. CACHE / PERSIST
+-------------------
+
+If you use the same DataFrame multiple times, you can cache it.
+
+    df.cache()
+
+Then trigger an action:
+
+    df.count()
+
+Later operations can reuse the cached data.
+
+Remove it:
+
+    df.unpersist()
+
+Cache only when it makes sense.
+
+Caching everything can waste memory.
+
+
+38. BROADCAST JOIN
+------------------
+
+If one DataFrame is small, Spark can broadcast it to the executors.
+
+Example:
+
+    from pyspark.sql.functions import broadcast
+
+    result = large_df.join(
+        broadcast(small_df),
+        "id",
+        "left"
+    )
+
+This can avoid a large shuffle.
+
+Only use broadcast when the smaller dataset is actually small enough
+to fit comfortably in executor memory.
+
+
+39. SPARK SQL
+------------
+
+You can register a DataFrame as a temporary SQL view:
+
+    df.createOrReplaceTempView(
+        "people"
+    )
+
+Then use SQL:
+
+    result = spark.sql("""
+        SELECT name, age
+        FROM people
+        WHERE age > 25
+    """)
+
+    result.show()
+
+This is useful when SQL is more natural than DataFrame syntax.
+
+
+40. EXPLAIN
+----------
+
+Use explain() to inspect the execution plan.
+
+    df.explain()
+
+More detailed:
+
+    df.explain(True)
+
+This is useful for:
+
+- Understanding execution
+- Finding shuffles
+- Debugging performance
+- Understanding Spark's optimization
+
+
+41. CATALYST OPTIMIZER
+----------------------
+
+Spark SQL uses the Catalyst optimizer to optimize queries.
+
+Conceptually:
+
+    Your DataFrame / SQL
+            |
+            v
+    Logical Plan
+            |
+            v
+    Optimized Logical Plan
+            |
+            v
+    Physical Plan
+            |
+            v
+    Execution
+
+
+42. SPARK SQL ENGINE
+--------------------
+
+Spark's SQL/DataFrame engine provides optimizations for structured data.
+
+This is one of the main reasons DataFrames are generally preferred over
+RDDs for structured data processing.
+
+
+43. COMMON PERFORMANCE RULES
+----------------------------
+
+1. Prefer DataFrames over RDDs.
+
+2. Filter data as early as possible.
+
+3. Select only the columns you actually need.
+
+4. Avoid collect() on large datasets.
+
+5. Avoid unnecessary shuffles.
+
+6. Be careful with groupBy, join, distinct, and orderBy.
+
+7. Cache only when a DataFrame is reused.
+
+8. Use Parquet for many analytical workloads.
+
+9. Use broadcast joins when the smaller side is genuinely small.
+
+10. Check execution plans with explain().
+
+11. Choose a sensible number of partitions.
+
+12. Avoid creating extremely small files.
+
+
+44. IMPORTANT: COLLECT()
+------------------------
+
+This is dangerous with large datasets:
+
+    data = df.collect()
+
+collect() brings ALL records to the Driver.
+
+For a huge DataFrame, this can cause the Driver to run out of memory.
+
+Instead, use distributed operations whenever possible.
+
+For small datasets:
+
+    df.show()
+
+or:
+
+    df.take(10)
+
+
+45. END-TO-END PYSPARK EXAMPLE
+------------------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+
+spark = SparkSession.builder \
+    .appName("SalesAnalysis") \
+    .getOrCreate()
+
+data = [
+    ("Laptop", "Electronics", 2, 1000),
+    ("Phone", "Electronics", 3, 700),
+    ("Desk", "Furniture", 1, 500),
+    ("Chair", "Furniture", 4, 100)
+]
+
+df = spark.createDataFrame(
+    data,
+    [
+        "product",
+        "category",
+        "quantity",
+        "price"
+    ]
+)
+
+result = (
+    df
+    .withColumn(
+        "revenue",
+        F.col("quantity") * F.col("price")
+    )
+    .groupBy("category")
+    .agg(
+        F.sum("revenue").alias("total_revenue"),
+        F.sum("quantity").alias("total_quantity")
+    )
+    .orderBy(
+        F.col("total_revenue").desc()
+    )
+)
+
+result.show()
+
+spark.stop()
+
+
+46. GOOGLE COLAB QUICK START
+----------------------------
+
+Install PySpark:
+
+    !pip install pyspark -q
+
+Create Spark:
+
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.builder \
+        .appName("ColabSpark") \
+        .getOrCreate()
+
+Test:
+
+    data = [
+        ("Alice", 25),
+        ("Bob", 30)
+    ]
+
+    df = spark.createDataFrame(
+        data,
+        ["name", "age"]
+    )
+
+    df.show()
+
+Stop:
+
+    spark.stop()
+
+
+47. MOST IMPORTANT CODE TO MEMORIZE
+-----------------------------------
+
+Create Spark:
+
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.builder \
+        .appName("MyApp") \
+        .getOrCreate()
+
+
+Import functions:
+
+    from pyspark.sql import functions as F
+
+
+Read CSV:
+
+    df = spark.read.csv(
+        "data.csv",
+        header=True,
+        inferSchema=True
+    )
+
+
+Read Parquet:
+
+    df = spark.read.parquet(
+        "data.parquet"
+    )
+
+
+Show:
+
+    df.show()
+
+
+Schema:
+
+    df.printSchema()
+
+
+Select:
+
+    df.select(
+        "name",
+        "age"
+    )
+
+
+Filter:
+
+    df.filter(
+        F.col("age") > 25
+    )
+
+
+Create column:
+
+    df.withColumn(
+        "new_column",
+        F.col("a") + F.col("b")
+    )
+
+
+Group:
+
+    df.groupBy(
+        "category"
+    ).agg(
+        F.sum("value")
+    )
+
+
+Join:
+
+    df1.join(
+        df2,
+        "id",
+        "left"
+    )
+
+
+Sort:
+
+    df.orderBy(
+        F.col("value").desc()
+    )
+
+
+Remove duplicates:
+
+    df.dropDuplicates()
+
+
+Count:
+
+    df.count()
+
+
+Cache:
+
+    df.cache()
+
+
+Execution plan:
+
+    df.explain()
+
+
+Write:
+
+    df.write.parquet(
+        "output/"
+    )
+
+
+Stop:
+
+    spark.stop()
+
+
+48. INTERVIEW DEFINITIONS
+-------------------------
+
+Apache Spark:
+A distributed data processing engine designed for large-scale data
+processing.
+
+PySpark:
+The Python API for Apache Spark.
+
+SparkSession:
+The main entry point for interacting with Spark.
+
+Driver:
+The process that coordinates the Spark application and creates the
+execution plan.
+
+Executor:
+A process that runs tasks and processes partitions.
+
+Worker:
+A machine where Spark executors run.
+
+Partition:
+A chunk of distributed data that can be processed in parallel.
+
+Task:
+A unit of work performed on a partition.
+
+Job:
+A computation triggered by an action.
+
+Stage:
+A set of tasks that can execute as part of a stage before a shuffle
+boundary.
+
+Transformation:
+A lazy operation that creates a new DataFrame/RDD.
+
+Action:
+An operation that triggers execution.
+
+Lazy evaluation:
+Spark waits until an action is called before executing the required
+transformations.
+
+Shuffle:
+Redistribution of data between partitions.
+
+DataFrame:
+A distributed structured dataset optimized by Spark.
+
+RDD:
+A lower-level distributed collection.
+
+Cache:
+Stores computed data for reuse.
+
+Broadcast:
+Sends a small dataset to executors to make certain operations,
+especially joins, more efficient.
+
+
+49. THE SPARK MENTAL MODEL
+--------------------------
+
+Remember this sequence:
+
+    DATA
+      |
+      v
+    DATAFRAME
+      |
+      v
+    PARTITIONS
+      |
+      v
+    TRANSFORMATIONS
+      |
+      v
+    LAZY EXECUTION PLAN
+      |
+      v
+    ACTION
+      |
+      v
+    JOB
+      |
+      v
+    STAGES
+      |
+      v
+    TASKS
+      |
+      v
+    EXECUTORS
+      |
+      v
+    RESULT
+
+
+50. THE MOST IMPORTANT CONCEPT
+------------------------------
+
+Spark is fundamentally about DISTRIBUTING WORK.
+
+The key idea is:
+
+    Large Dataset
+         |
+         v
+    Split into Partitions
+         |
+         v
+    Process Partitions in Parallel
+         |
+         v
+    Combine / Redistribute Results
+         |
+         v
+    Final Result
+
+
+If you understand these concepts, focus especially on:
+
+1. Driver vs Executor
+2. Worker vs Executor
+3. Partition vs Task
+4. Job vs Stage vs Task
+5. Transformation vs Action
+6. Lazy Evaluation
+7. Shuffle
+8. DataFrame vs RDD
+9. Cache
+10. Broadcast Join
+11. SparkSession
+12. Catalyst / query optimization
