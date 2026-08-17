@@ -1,0 +1,17 @@
+
+Qué es Spark?
+
+Herramienta para el procesado de grandes volúmenes de datos.
+
+Qué problemas resuelve?:
+
+Manejar grandes volúmenes de datos distribuyendo el procesado de los mismos 
+en varios procesos paralelos. (Esto también aumenta la velocidad de procesado).
+
+Spark tiene tolerancia a los fallos. Se recupera solo de algunos fallo.
+Tiene procesamientos in-memory (cache) que permite mejorar el performance.
+Puede ser integrado con muchas fuentes de datos.
+
+Tiene apis para varios lenguajes de programación.
+
+
