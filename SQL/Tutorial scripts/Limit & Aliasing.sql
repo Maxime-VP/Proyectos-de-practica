@@ -25,6 +25,21 @@ order by age desc
 limit 1, 2
 ;
 
+-- Aliasing
+
+#Hay que tener cuidado con los alias ya que sigue un orden de ejecución SQL, no puedes usar un alias si aun no se ha ejecutado donde se declara
+-- Orden:
+# 1. FROM
+# 2. JOIN
+# 3. ON
+# 4. WHERE
+# 5. GROUP BY
+# 6. HAVING
+# 7. SELECT
+# 8. DISTINCT
+# 9. ORDER BY
+# 10. LIMIT
+
 # Aliasing es utilizar un alias o un nombre distinto para una columna utilizando "AS"
 select gender, avg(age) as "Average Age"
 from parks_and_recreation.employee_demographics
