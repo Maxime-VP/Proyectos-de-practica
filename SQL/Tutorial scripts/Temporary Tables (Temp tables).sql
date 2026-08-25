@@ -5,6 +5,7 @@
 # Se eliminan al volver a acceder a SQL, solo duran lo que dure la sesión en la que fueron creados
 
 #create temporary table
+-- Puedes agregar valores con select o insert
 
 create temporary table temp_table
 (
