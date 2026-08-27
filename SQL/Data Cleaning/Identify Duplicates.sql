@@ -47,8 +47,7 @@ select *
 from row_numbered_duplicates;
 
 -- Forma mas correcta de hacerlo
-
-create table `layoffs_staging_no_duplicates` (
+create table world_layoffs.layoffs_staging_no_duplicates (
 	`company` text,
     `location` text,
     `industry` text,
@@ -62,9 +61,9 @@ create table `layoffs_staging_no_duplicates` (
 ) engine=InnoDB default charset=utf8mb4 collate=utf8mb4_0900_ai_ci;
 
 select *
-from layoffs_staging_no_duplicates;
+from world_layoffs.layoffs_staging_no_duplicates;
 
-insert into layoffs_staging_no_duplicates
+insert into world_layoffs.layoffs_staging_no_duplicates
 		select *,  
 		row_number() over (
         partition by company,location, industry, total_laid_off, percentage_laid_off, `date`, 
@@ -72,10 +71,10 @@ insert into layoffs_staging_no_duplicates
 		from world_layoffs.layoffs_staging;
 
 delete
-from layoffs_staging_no_duplicates
+from world_layoffs.layoffs_staging_no_duplicates
 where row_num > 1;
 
 select *
-from layoffs_staging_no_duplicates;
+from world_layoffs.layoffs_staging_no_duplicates;
 
 
