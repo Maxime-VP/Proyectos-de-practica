@@ -3,7 +3,6 @@
 # En un caso real, es más útil estandarizar antes de eliminar duplicados ya que algunas veces no se identifican las diferencias debido a la falta de standarización
 
 
-
 select *
 from world_layoffs.layoffs_staging_no_duplicates;
 
@@ -73,8 +72,6 @@ set `date` = str_to_date(`date`, "%m/%d/%Y");
 
 alter table world_layoffs.layoffs_staging_no_duplicates
 modify column `date` DATE;
-
 	select `date`
 	from world_layoffs.layoffs_staging_no_duplicates
 	order by `date`;
-    
